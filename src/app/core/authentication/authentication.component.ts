@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {MatDialog} from "@angular/material/dialog";
 import {ApprovalDialogComponent} from "../dialogs/approval-dialog/approval-dialog.component";
 import {Router} from "@angular/router";
 import {AuthService} from "../services/auth.service";
+import {MatSnackBar, MatSnackBarHorizontalPosition, MatSnackBarVerticalPosition} from "@angular/material/snack-bar";
+import {ApprovalDialogConfig} from "../dialogs/approval-dialog/model/ApprovalDialogConfig";
+import {UserDTO} from "./dto/userDTO";
 
 @Component({
   selector: 'app-authentication',
@@ -12,48 +15,122 @@ import {AuthService} from "../services/auth.service";
 })
 export class AuthenticationComponent implements OnInit {
 
-  loginDetailsForm!: FormGroup;
+  farmerForm!: FormGroup;
+  LoginForm!:FormGroup;
+  showAnime= false;
 
-  apiResponse=false;
-  constructor(private formBuilder:FormBuilder,
-              private authService:AuthService,
-              private router: Router,
-              private dialog:MatDialog
+  constructor(private router: Router,
+              private _snackBar: MatSnackBar,
+              private authenticationService:AuthService,
+              public dialog: MatDialog,
   ) { }
 
   ngOnInit(): void {
-    this.loginDetailsForm = this.formBuilder.group({
-      username: ['', Validators.required],
-      password: ['', Validators.required]
+    this.farmerForm = new FormGroup({
+      username: new FormControl('', [
+        Validators.required
+      ]),
+      password: new FormControl('', [
+        Validators.required
+      ]),
+    });
+    this.LoginForm = new FormGroup({
+      username: new FormControl('', [
+        Validators.required
+      ]),
+      email: new FormControl('', [
+        Validators.required
+      ]),
+      phoneNo1: new FormControl('', [
+        Validators.required
+      ]),
+      password: new FormControl('', [
+        Validators.required
+      ]),
+    })
+  }
+
+  horizontalPosition: MatSnackBarHorizontalPosition = 'center';
+  verticalPosition: MatSnackBarVerticalPosition = 'bottom';
+
+  openSnackBar() {
+    this._snackBar.open('Wrong Credentials', 'Ok', {
+      horizontalPosition: this.horizontalPosition,
+      verticalPosition: this.verticalPosition,
+      panelClass: ['red-snackbar','login-snackbar']
     });
   }
-  loginUser():void{
-    this.authService.login(this.loginDetailsForm.get('username')?.value)
-      .subscribe(res => {
-        console.log()
-        if (res[0].password == this.loginDetailsForm.get('password')?.value) {
-          // this.cookieService.put('token',JSON.stringify(res[0].token),{ expires: new Date(new Date().getTime() +  24000 * 60 * 60) });
-          this.router.navigate(['/dashboard']);
-          // login= true;
-        }else{
-          console.log("res")
+
+  signIn() {
+    this.showAnime = true
+    if (this.farmerForm.valid){
+      this.authenticationService.login(this.farmerForm.get('username')?.value)
+        .subscribe((res:any) => {
           console.log(res)
-          // const approval5 = this.dialog.open(ApprovelDialogComponent, {
-          //   width: '450px',
-          //   data: new ApprovalDialogConfig('Error', 'UnSuccessful', 'Invalid Username Or Password')
-          // });
-          // approval5.afterClosed().subscribe(approve => {
-          //   if (approve) {
-          //     console.log('Login Unsuccessful');
-          //   }else{
-          //     console.log('Login successful');
-          //   }
-          // });
-        }
-      })
+          if (res[0].password == this.farmerForm.get('password')?.value) {
+
+            this.router.navigate(['/dashboard']);
+          }},error => {
+          console.log(error)
+          this.dialog.open(ApprovalDialogComponent, {
+            width: '350px',
+            // height: '200px',
+            data: new ApprovalDialogConfig('Error', 'Wrong Credentials!', 'Invalid Username Or Password')
+          });
+        });
+    }else {
+      this.dialog.open(ApprovalDialogComponent, {
+        width: '350px',
+        data: new ApprovalDialogConfig('Error', 'Error!', 'Please Insert All Values Correctly')
+      });
+    }
   }
-  clear(){
-    this.loginDetailsForm.reset();
+
+  addUser(){
+    this.showAnime = true
+    if (this.LoginForm.valid){
+      this.authenticationService.AddnewUser(new UserDTO(
+        "",
+        this.LoginForm.get('username')?.value,
+        this.LoginForm.get('email')?.value,
+        this.LoginForm.get('password')?.value
+      )).subscribe(res=>{
+        console.log(res)
+        if (res){
+          this.openSnackBars()
+          this.clearform();
+        }},error => {
+        console.log(error)
+        this.dialog.open(ApprovalDialogComponent, {
+          width: '350px',
+          data: new ApprovalDialogConfig('Error', 'Error!', 'Invalid Inputs Or Already registred')
+        });
+      });
+    }else {
+      this.dialog.open(ApprovalDialogComponent, {
+        width: '350px',
+        data: new ApprovalDialogConfig('Error', 'Error!', 'Please Insert All Values Correctly')
+      });
+    }
+
+  }
+
+  clearform(){
+    this.LoginForm.setValue({
+      password:'',
+      username:'',
+      phoneNo1 :'',
+      email:'',
+    })
+  }
+
+
+  openSnackBars(){
+    this._snackBar.open('User Added Successful!!', 'ok',{
+      horizontalPosition: this.horizontalPosition,
+      verticalPosition: this.verticalPosition,
+      panelClass: ['green-snackbar', 'login-snackbar']
+    });
   }
 
 }

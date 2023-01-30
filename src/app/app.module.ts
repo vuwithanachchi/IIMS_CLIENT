@@ -34,6 +34,10 @@ import {CookieModule} from "ngx-cookie";
 import {MatTableModule} from "@angular/material/table";
 import { MCartComponent } from './components/m-cart/m-cart.component';
 import { CartDetailsComponent } from './components/m-cart/componenets/cart-details/cart-details.component';
+import {MatTabsModule} from "@angular/material/tabs";
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatCardModule} from "@angular/material/card";
+import {MatSnackBarModule} from "@angular/material/snack-bar";
 
 @NgModule({
   declarations: [
@@ -74,6 +78,10 @@ import { CartDetailsComponent } from './components/m-cart/componenets/cart-detai
     SharedModule,
     CookieModule.forRoot(),
     MatTableModule,
+    MatCardModule,
+    MatTabsModule,
+    MatCheckboxModule,
+    MatSnackBarModule
   ],
   providers: [HttpClientModule],
   bootstrap: [AppComponent]
